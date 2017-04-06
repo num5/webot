@@ -10,7 +10,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"github.com/skip2/go-qrcode"
 )
 
 // Search is a helper to remove useless char
