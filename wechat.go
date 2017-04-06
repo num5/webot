@@ -6,8 +6,10 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"github.com/num5/loger"
 	"io"
 	"io/ioutil"
+	"math/rand"
 	"net"
 	"net/http"
 	"net/http/cookiejar"
@@ -15,15 +17,10 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
-
-	log "github.com/Sirupsen/logrus"
 )
-
-var logger = log.WithFields(log.Fields{
-	"module": "wechat",
-})
 
 const httpOK = `200`
 
@@ -58,7 +55,7 @@ func (response *Response) IsSuccess() bool {
 
 // response's error msg.
 func (response *Response) Error() error {
-	return fmt.Errorf("error message:[%s]", response.BaseResponse.ErrMsg)
+	return fmt.Errorf("错误信息: %s", response.BaseResponse.ErrMsg)
 }
 
 // BaseResponse for all api resp.
@@ -69,23 +66,19 @@ type BaseResponse struct {
 
 // Configure ...
 type Configure struct {
-	Processor         UUIDProcessor
-	Debug             bool
-	CachePath         string
-	FuzzyDiff         bool
-	UniqueGroupMember bool
-	version           string
+	Processor UUIDProcessor
+	Debug     bool
+	CachePath string
+	version   string
 }
 
 // DefaultConfigure create default configuration
 func DefaultConfigure() *Configure {
 	return &Configure{
-		Processor:         new(defaultUUIDProcessor),
-		Debug:             true,
-		FuzzyDiff:         true,
-		UniqueGroupMember: true,
-		CachePath:         `.ggbot/debug`,
-		version:           `1.0.1-rc1`,
+		Processor: new(defaultUUIDProcessor),
+		Debug:     true,
+		CachePath: `.webot/debug`,
+		version:   `1.0.0-rc1`,
 	}
 }
 
@@ -141,9 +134,13 @@ func newWeChat(conf *Configure) (*WeChat, error) {
 		return nil, err
 	}
 
+	rand.Seed(time.Now().Unix())
+	str := strconv.Itoa(rand.Int())
+	device_id := "e" + str[2:17]
+
 	baseReq := new(BaseRequest)
 	baseReq.Ret = 1
-	baseReq.DeviceID = `e999471493880231`
+	baseReq.DeviceID = device_id
 
 	wechat := &WeChat{
 		Client:      client,
@@ -214,10 +211,6 @@ func AwakenNewBot(conf *Configure) (*WeChat, error) {
 	}()
 
 	wechat.keepAlive()
-
-	if conf.Debug {
-		log.SetLevel(log.DebugLevel)
-	}
 
 	return wechat, nil
 }
@@ -293,4 +286,22 @@ func (wechat *WeChat) PassTicketKV() string {
 // SkeyKV return a string like `skey=ewfwoefjwofjskfwes`
 func (wechat *WeChat) SkeyKV() string {
 	return fmt.Sprintf(`skey=%s`, wechat.BaseRequest.Skey)
+}
+
+var log *loger.Log
+
+func init() {
+
+	// 初始化
+	log = loger.NewLog(1000)
+	// 设置输出引擎
+	log.SetEngine("file", `{"level":4, "spilt":"size", "filename":"logs/wechat.log", "maxsize":10}`)
+
+	//log.DelEngine("console")
+
+	// 设置是否输出行号
+	log.SetFuncCall(true)
+
+	// 设置log级别
+	//log.SetLevel("Warning")
 }

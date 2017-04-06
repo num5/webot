@@ -118,9 +118,9 @@ func (wechat *WeChat) syncContacts(cts []map[string]interface{}) {
 
 	count := len(cts)
 
-	logger.Debugf(`一共需要处理 [%d] 个联系人`, count)
+	log.Tracf(`一共需要处理 [%d] 个联系人...`, count)
 	if count > 300 {
-		logger.Warn(`您的联系人较多，可能需要等待1分钟左右`) // TODO 用多线程比较
+		log.Debug(`您的联系人较多，可能需要等待1分钟左右...`) // TODO 用多线程比较
 	}
 	// 有以下几种情况需要处理
 	// 1. 内存和文件系统中都不存在联系人 ==> 直接新的cts数据初始化内存然后写文件
@@ -128,7 +128,7 @@ func (wechat *WeChat) syncContacts(cts []map[string]interface{}) {
 	// 3. 内存和文件系统中都有联系人 ==> 以内存中的数据为主，更新数据，然后写文件
 	//
 	c := wechat.cache
-	logger.Debug(`准备开始处理联系人信息`)
+	log.Trac(`准备开始处理联系人信息...`)
 	c.userGG = make(map[string]string)
 
 	if len(c.ggmap) == 0 {
@@ -140,7 +140,7 @@ func (wechat *WeChat) syncContacts(cts []map[string]interface{}) {
 	}
 
 	if len(c.ggmap) == 0 { // 第一次启动最简单，直接刷进去
-		logger.Debug(`联系人没有本地缓存，为每一个用户生成唯一ID`)
+		log.Debug(`联系人没有本地缓存，为每一个用户生成唯一ID...`)
 		for _, v := range cts {
 			var nc *Contact
 			bs, _ := json.Marshal(v)
@@ -152,7 +152,7 @@ func (wechat *WeChat) syncContacts(cts []map[string]interface{}) {
 			c.updateContact(nc)
 		}
 	} else {
-		logger.Debug(`发现联系人本地缓存，执行diff逻辑`)
+		log.Debug(`发现联系人本地缓存，执行diff逻辑...`)
 
 		tempNickGG := c.nickGG
 
@@ -166,15 +166,15 @@ func (wechat *WeChat) syncContacts(cts []map[string]interface{}) {
 			ggids := tempNickGG[nc.NickName]
 
 			if len(ggids) == 0 { // 由于改名，找不到这个人待处理
-				logger.Warnf(`新添加或者离线时修改过昵称的联系人 [%s]`, nc.NickName)
+				log.Warnf(`新添加或者离线时修改过昵称的联系人 [%s]...`, nc.NickName)
 				badguys = append(badguys, v)
 			} else if len(ggids) == 1 { // 找到了1个id，对比其他信息
 				oc := c.ggmap[ggids[0]]
 				nc.GGID = oc.GGID
 				nc.HeadHash = contactHeadImgHash(wechat, nc)
 				if nc.HeadHash != oc.HeadHash {
-					logger.Warnf(`我们认为[%s]修改了他的头像，但是也有可能是有2个人同时修改了昵称,
-						请仔细检查,如若有误,请手动更改cache文件中的mapping 关系 GGID: %s`, nc.NickName, nc.GGID)
+					log.Warnf(`[%s]修改了他的头像，但是也有可能是有2个人同时修改了昵称,
+					请仔细检查,如若有误,请手动更改cache文件中的mapping 关系 GGID: %s`, nc.NickName, nc.GGID)
 				}
 				c.updateContact(nc)
 				delete(tempNickGG, nc.NickName)
@@ -184,7 +184,7 @@ func (wechat *WeChat) syncContacts(cts []map[string]interface{}) {
 					oc := c.ggmap[id]
 					// 这里认为找到唯一id的名字了
 					if oc.HeadHash == contactHeadImgHash(wechat, nc) {
-						logger.Infof(`已经处理同名联系人: %s`, nc.NickName)
+						log.Infof(`已经处理同名联系人: %s`, nc.NickName)
 						nc.GGID = oc.GGID
 						nc.HeadHash = oc.HeadHash
 						c.updateContact(nc)
@@ -228,14 +228,14 @@ func (wechat *WeChat) syncContacts(cts []map[string]interface{}) {
 				ggids := tempNickGG[needRemoveNick]
 				oc := c.ggmap[ggids[i]]
 
-				logger.Warnf(`我们认为[%s]将昵称改为[%s] GGID:%s`, oc.NickName, nc.NickName, oc.GGID)
+				log.Warnf(`[%s]将昵称改为[%s] GGID:%s`, oc.NickName, nc.NickName, oc.GGID)
 
 				nc.GGID = oc.GGID
 				nc.HeadHash = oc.HeadHash
 
 				tempNickGG[oc.NickName] = append(ggids[:i], ggids[i+1:]...)
 			} else {
-				logger.Warnf(`无法确认用户id 作为新用户处理 nickName: [%s]`, nc.NickName)
+				log.Warnf(`无法确认用户id 作为新用户处理 nickName: [%s]...`, nc.NickName)
 
 				nc.GGID = uuid.NewV4().String()
 				nc.HeadHash = contactHeadImgHash(wechat, nc)
@@ -253,20 +253,18 @@ func (wechat *WeChat) syncContacts(cts []map[string]interface{}) {
 			}
 		}
 		if len(lostUser) != 0 {
-			logger.Warn(`丢失了以下用户 so sorry ~`)
-			for nick, ggids := range lostUser {
-				logger.Warnf(`NickName:%s GGIDs: %s`, nick, ggids)
+			log.Warn(`丢失了以下用户 so sorry ~ ~`)
+			for nick, _ := range lostUser {
+				log.Warnf(`用户名: %s ...`, nick)
 			}
 		}
 	}
 
-	if wechat.conf.UniqueGroupMember {
-		for _, contact := range c.ggmap {
-			if contact.Type == Group {
-				for _, m := range contact.MemberList {
-					gid, _ := c.userGG[m.UserName] // 为所有群里的成员添加GGID
-					m.GGID = gid
-				}
+	for _, contact := range c.ggmap {
+		if contact.Type == Group {
+			for _, m := range contact.MemberList {
+				gid, _ := c.userGG[m.UserName] // 为所有群里的成员添加GGID
+				m.GGID = gid
 			}
 		}
 	}
@@ -291,24 +289,22 @@ func (wechat *WeChat) appendContacts(cts []map[string]interface{}) {
 			nc.GGID = oc.GGID
 			nc.HeadHash = oc.HeadHash
 			c.updateContact(nc)
-			logger.Infof(`update %s`, nc.NickName)
+			log.Infof(`更新联系人 [%s] ...`, nc.NickName)
 		} else {
 			// 新建
 			nc.GGID = uuid.NewV4().String()
 			nc.HeadHash = contactHeadImgHash(wechat, nc)
 			c.updateContact(nc)
-			logger.Infof(`create new contact %s`, nc.NickName)
+			log.Infof(`创建新的联系人 [%s] ...`, nc.NickName)
 		}
-		logger.Debug(nc)
+		log.Debug(nc)
 	}
 
-	if wechat.conf.UniqueGroupMember {
-		for _, contact := range c.ggmap {
-			if contact.Type == Group {
-				for _, m := range contact.MemberList {
-					gid, _ := c.userGG[m.UserName] // 为所有群里的成员添加GGID
-					m.GGID = gid
-				}
+	for _, contact := range c.ggmap {
+		if contact.Type == Group {
+			for _, m := range contact.MemberList {
+				gid, _ := c.userGG[m.UserName] // 为所有群里的成员添加GGID
+				m.GGID = gid
 			}
 		}
 	}
@@ -373,13 +369,9 @@ func unmarshalLocalFile(path string, obj interface{}) error {
 
 func contactHeadImgHash(wechat *WeChat, contact *Contact) string {
 
-	if wechat.conf.FuzzyDiff {
-		return `contact fuzzy diff`
-	}
-
 	data, err := wechat.GetContactHeadImg(contact)
 	if err != nil {
-		logger.Errorf(`can't get [%s]'s head image`, contact.NickName)
+		log.Errorf(`获取 [%s] 头像失败...`, contact.NickName)
 		return ``
 	}
 

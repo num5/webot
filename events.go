@@ -142,9 +142,9 @@ func (es *evtStream) match(path string) string {
 func (wechat *WeChat) Go() {
 	es := wechat.evtStream
 
-	logger.Debug(`------------all handlers------------`)
+	log.Debug(`------------开启微信程序，准备中...------------`)
 	for k := range es.Handlers {
-		logger.Debugf(k)
+		log.Debugf(k)
 	}
 
 	for e := range es.stream {
@@ -244,7 +244,7 @@ func newTimingCh(hm string) chan Event {
 			if n > 0 || hour > nh || (hour == nh && minute < nm) {
 				next = next.Add(time.Hour * 24)
 			}
-			logger.Debugf(`next timing %v`, next)
+			log.Debugf(`下一次启动时间 %v ... `, next)
 			n++
 			time.Sleep(next.Sub(now))
 			e := Event{}
@@ -306,7 +306,7 @@ func (wechat *WeChat) emitNewMessageEvent(m map[string]interface{}) {
 	mid := m[`MsgId`].(string)
 
 	isMediaMsg := false
-	mediaURL := ``
+	mediaURL := `./media/`
 	path := ``
 
 	switch msgType {
@@ -344,7 +344,7 @@ func (wechat *WeChat) emitNewMessageEvent(m map[string]interface{}) {
 		contact, err := wechat.ContactByUserName(infos[0])
 		if err != nil {
 			wechat.ForceUpdateGroup(groupUserName)
-			logger.Errorf(`can't find contact info, so ignore this message %s`, m)
+			log.Errorf(`找不到联系人信息，忽略此消息 %s ...`, m)
 			return
 		}
 

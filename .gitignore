@@ -6,6 +6,7 @@
 # Folders
 _obj
 _test
+.idea
 
 # Architecture specific extensions/prefixes
 *.[568vq]
@@ -23,3 +24,7 @@ _testmain.go
 *.test
 *.prof
 main
+.idea/libraries/GOPATH__wechat_.xml
+.idea/modules.xml
+.idea/wechat.iml
+.idea/workspace.xml

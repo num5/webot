@@ -188,7 +188,7 @@ func (wechat *WeChat) fetchGroupsMembers(groups []map[string]interface{}) ([]map
 
 	list := make([]map[string]string, 0)
 
-	logger.Debugf(`groups %s`, groups)
+	log.Debugf(`微信群组 %s`, groups)
 	for _, group := range groups {
 
 		encryChatRoomID, _ := group[`EncryChatRoomId`].(string)
@@ -204,7 +204,7 @@ func (wechat *WeChat) fetchGroupsMembers(groups []map[string]interface{}) ([]map
 		}
 	}
 
-	logger.Debugf(`will load members: %s`, list)
+	log.Debugf(`加载成员中: %s ...`, list)
 	return wechat.fetchMembers(list), nil
 }
 
@@ -227,7 +227,7 @@ func (wechat *WeChat) fetchMembers(list []map[string]string) []map[string]interf
 
 	if !resp.IsSuccess() {
 		err := fmt.Errorf(`list: %s`, list)
-		logger.Errorf(`fetchMembers error %s`, err)
+		log.Errorf(`获取群组成员失败 %s ...`, err)
 	}
 
 	return resp.ContactList
@@ -244,11 +244,11 @@ func (wechat *WeChat) UpateGroupIfNeeded(groupID string) {
 // ForceUpdateGroup upate group infomation
 func (wechat *WeChat) ForceUpdateGroup(groupUserName string) {
 
-	logger.Debugf(`will fource update group username: %s`, groupUserName)
+	log.Debugf(`准备强制更新用户名: [%s] ...`, groupUserName)
 
 	groups, err := wechat.fetchGroups([]string{groupUserName})
 	if err != nil || len(groups) != 1 {
-		logger.Error(`sync group failed`)
+		log.Error(`同步群组列表失败...`)
 		return
 	}
 
@@ -261,7 +261,7 @@ func (wechat *WeChat) ForceUpdateGroup(groupUserName string) {
 
 	memberList, err := wechat.fetchGroupsMembers(groups)
 	if err != nil {
-		logger.Error(`sync group failed`)
+		log.Error(`同步群组成员失败...`)
 		return
 	}
 
@@ -364,14 +364,14 @@ func (wechat *WeChat) modifyRemarkName(un string) (string, error) {
 	wechat.Excute(url, bytes.NewReader(data), resp)
 
 	if !resp.IsSuccess() {
-		logger.Error(resp.Error())
+		log.Error(resp.Error())
 	}
 
 	return `Test`, nil
 }
 
 func (wechat *WeChat) contactDidChange(cts []map[string]interface{}, changeType int) {
-	logger.Info(`contact did change, will update local contact`)
+	log.Info(`检测到联系人发生了改变，准备更新本地联系人...`)
 	if changeType == Modify { // 修改
 		var mcts []map[string]interface{}
 		for _, v := range cts {
@@ -397,7 +397,7 @@ func (wechat *WeChat) contactDidChange(cts []map[string]interface{}, changeType 
 }
 
 func (wechat *WeChat) groupMemberDidChange(groups []map[string]interface{}) {
-	logger.Info(`group member has changed will update local group members`)
+	log.Info(`检测到群成员发生了改变，准备更新群组列表...`)
 	for _, group := range groups {
 		wechat.ForceUpdateGroup(group[`UserName`].(string))
 	}

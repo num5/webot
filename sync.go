@@ -47,18 +47,22 @@ type CountedContent struct {
 // listen did hold a long connection, retrun data by 4 chans.
 func (wechat *WeChat) beginSync() error {
 
-	logger.Info(`looking up sync server, after discover sync server you can begin receiving message.`)
+	log.Info(`进行同步线路测试 ...`)
 
 	didGetSyncHost := wechat.choseAvalibleSyncHost()
 
 	if !didGetSyncHost {
-		return fmt.Errorf(`can't pick an avalible sync host, please re-login`)
+		return fmt.Errorf(`无法同步可用主机，请重新登录...`)
 	}
 
-	logger.Infof(`discovered sync host [%s], begin sync ... ...`, wechat.syncHost)
+	log.Tracf(`发现主机: [%s], 开始同步 ... ...`, wechat.syncHost)
 
 	for {
-		logger.Info(`sync ....`)
+		log.Info(`消息同步中 ....`)
+
+		if !wechat.IsLogin {
+			wechat.IsLogin = true
+		}
 
 		code, selector, err := wechat.syncCheck()
 
@@ -67,18 +71,18 @@ func (wechat *WeChat) beginSync() error {
 		}
 
 		if code != success {
-			return fmt.Errorf(`syncing failed, please relogin code=%s`, code)
+			return fmt.Errorf(`同步失败，请重新登录... [code]=%s`, code)
 		}
 
 		if selector == `0` {
-			logger.Debug(`server is silent`)
+			log.Debug(`服务器无响应...`)
 		} else {
 			continueFlag := -1
 			for continueFlag != 0 {
 				resp, err := wechat.sync()
 				if err != nil {
-					logger.Error(err)
-					return errors.New(`sync message failed`)
+					log.Error("同步消息失败：%s...", err)
+					return errors.New(`同步消息失败...`)
 				}
 				continueFlag = resp.ContinueFlag
 
@@ -91,13 +95,11 @@ func (wechat *WeChat) beginSync() error {
 				if resp.ModChatRoomMemberCount > 0 {
 					wechat.groupMemberDidChange(resp.ModChatRoomMemberList)
 				}
-				logger.Debugf(`server sync summary:
-					AddNewMessage(s)    : %d
-					ModContact(s)       : %d
-					DelContact(s)       : %d
-					ModChatRoomMember(s): %d `,
-					resp.AddMsgCount, resp.ModContactCount,
-					resp.DelContactCount, resp.ModChatRoomMemberCount)
+				log.Debugf(`服务器同步简介:
+	新增消息数目 		: %d
+	变更联系人数目  	: %d
+	群组联系人数目		: %d `,
+					resp.AddMsgCount, resp.ModContactCount, resp.ModChatRoomMemberCount)
 				go wechat.handleServerEvent(resp)
 			}
 		}
@@ -131,7 +133,7 @@ func (wechat *WeChat) syncCheck() (string, string, error) {
 
 	ds := string(data)
 
-	logger.Debug(ds)
+	log.Debug(ds)
 
 	// TOOD need handle this error
 	code, _ := search(ds, `window.synccheck={retcode:"`, `"`)
@@ -167,13 +169,13 @@ func (wechat *WeChat) choseAvalibleSyncHost() bool {
 		`webpush2.wx.qq.com`}
 
 	for _, host := range hosts {
-		logger.Debugf("attempt connect: %s ... ... ", host)
+		log.Debugf("尝试连接: [%s] ... ... ", host)
 		wechat.syncHost = host
 		code, _, _ := wechat.syncCheck()
 		if code == `0` {
 			return true
 		}
-		logger.Errorf("%s connect failed", host)
+		log.Errorf("[%s] 连接失败 ... ...", host)
 	}
 
 	return false

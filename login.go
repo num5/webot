@@ -52,13 +52,13 @@ func (wechat *WeChat) reLogin() error {
 // run is used to login to wechat server. Need end user scan orcode.
 func (wechat *WeChat) beginLoginFlow() error {
 
-	logger.Info(`wait a moment, prepare login parameters ... ...`)
+	log.Info(`稍等片刻，准备登陆参数 ... ...`)
 
 	cached, err := wechat.cachedInfo()
 
 	if err == nil {
 
-		logger.Info(`will attempt recoverer sessoin`)
+		log.Info(`尝试恢复登陆 ...`)
 
 		wechat.BaseURL = cached[`baseURL`].(string)
 		wechat.BaseRequest = cached[`baseRequest`].(*BaseRequest)
@@ -75,8 +75,9 @@ func (wechat *WeChat) beginLoginFlow() error {
 		}
 
 		return err
+	} else {
+		log.Errorf("恢复失败：%s ...", err.Error())
 	}
-	logger.Error(err)
 
 	// 1.
 	uuid, e := wechat.fetchUUID()
@@ -191,7 +192,7 @@ func (wechat *WeChat) fetchUUID() (string, error) {
 	}
 
 	if code != httpOK {
-		err = fmt.Errorf("error code is unexpect:[%s], api result:[%s]", code, ds)
+		err = fmt.Errorf("错误代码:[%s], 返回结果:[%s]...", code, ds)
 		return ``, err
 	}
 
@@ -226,7 +227,7 @@ func (wechat *WeChat) waitConfirmUUID(uuid string, tip int) (redirectURI, code s
 	rt = 0
 	switch code {
 	case "201":
-		logger.Debug(`scan successed, waitting wechat app send confirm request.`)
+		log.Debug(`扫描成功，等待微信发送确认请求...`)
 	case httpOK:
 		redirectURI, err = search(ds, `window.redirect_uri="`, `";`)
 		if err != nil {
@@ -234,7 +235,7 @@ func (wechat *WeChat) waitConfirmUUID(uuid string, tip int) (redirectURI, code s
 		}
 		redirectURI += "&fun=new"
 	default:
-		err = fmt.Errorf("time out, will retry %v", err)
+		err = fmt.Errorf("连接超时, 准备重新连接 %v...", err)
 	}
 	return
 }
@@ -252,7 +253,7 @@ func (wechat *WeChat) login(req *http.Request) error {
 
 	// full fill base request
 	if err = xml.NewDecoder(reader).Decode(wechat.BaseRequest); err != nil {
-		logger.Debug(err)
+		log.Debug(err)
 		return err
 	}
 
@@ -311,32 +312,30 @@ func (wechat *WeChat) keepAlive() {
 		err := wechat.reLogin()
 
 		if err != nil {
-			logger.Errorf(`login failed: %v`, err)
+			log.Errorf(`登陆失败: %v ...`, err)
 			retryTimes := wechat.retryTimes
 			triggerAfter := time.After(time.Minute * retryTimes)
-			logger.Warnf(`will retry login after %d minute(s)`, retryTimes)
+			log.Warnf(`准备 %d 分钟后重新登陆...`, retryTimes)
 			<-triggerAfter
 			wechat.retryTimes++
 			wechat.keepAlive()
 			return
 		}
 
-		logger.Info(`CONGRATULATION login successed`)
+		log.Trac(`登陆成功... ...`)
 
-		logger.Info(`begin sync contact`)
+		log.Trac(`开始同步联系人...`)
 		err = wechat.SyncContact()
 		if err != nil {
-			logger.Errorf(`sync contact error: %v`, err)
+			log.Errorf(`同步联系人失败: %v`, err)
 		}
-		logger.Info(`sync contact successfully`)
+		log.Trac(`同步联系人成功...`)
 
-        wechat.IsLogin = true
 		wechat.loginState <- 1
 		err = wechat.beginSync()
-        wechat.IsLogin = false
 		wechat.loginState <- -1
 
-		logger.Errorf(`sync error: %v`, err)
+		log.Errorf(`同步失败: %v...`, err)
 
 		wechat.keepAlive() // if listen occured error will excute this cmd.
 
@@ -376,10 +375,10 @@ func (wechat *WeChat) refreshCookieCache(cookies []*http.Cookie) {
 	}
 	b, err := json.Marshal(cookies)
 	if err != nil {
-		logger.Warnf(`refresh cookie error: %v`, err)
+		log.Warnf(`刷新 cookie 失败: %v...`, err)
 	} else {
 		createFile(wechat.conf.cookieCachePath(), b, false)
-		logger.Info(`did refresh cookie cache`)
+		//log.Info(`刷新 cookie 缓存...`)
 	}
 }
 

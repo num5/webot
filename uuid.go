@@ -16,14 +16,14 @@ func (dp *defaultUUIDProcessor) ProcessUUID(uuid string) error {
 	if err != nil {
 		return err
 	}
-	logger.Debugf(`qrcode image path: %s`, path)
+	//log.Debugf(`二维码保存地址: %s`, path)
 
 	// 3.
 	go func() {
 		dp.path = path
 		open.Start(path)
 	}()
-	logger.Info(`please scan ORCode by wechat mobile application`)
+	log.Info(`请使用微信扫一扫扫描二维码...`)
 
 	return nil
 }
