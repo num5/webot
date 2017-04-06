@@ -332,6 +332,9 @@ func (wechat *WeChat) keepAlive() {
 		log.Trac(`同步联系人成功...`)
 
 		wechat.loginState <- 1
+		if !wechat.IsLogin {
+			wechat.IsLogin = true
+		}
 		err = wechat.beginSync()
 		wechat.loginState <- -1
 

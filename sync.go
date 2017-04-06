@@ -60,10 +60,6 @@ func (wechat *WeChat) beginSync() error {
 	for {
 		log.Info(`消息同步中 ....`)
 
-		if !wechat.IsLogin {
-			wechat.IsLogin = true
-		}
-
 		code, selector, err := wechat.syncCheck()
 
 		if err != nil {
