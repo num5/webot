@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"github.com/skip2/go-qrcode"
 )
 
 // Search is a helper to remove useless char
@@ -58,7 +59,7 @@ func createFile(name string, data []byte, isAppend bool) (err error) {
 
 	defer func() {
 		if err != nil {
-			logger.Error(err)
+			log.Error(err)
 		}
 	}()
 
@@ -91,7 +92,7 @@ func str(n int64) string {
 }
 
 // FetchORCodeImage Get ORCode from wechat login server
-func fetchORCodeImage(uuid string) (string, error) {
+func fetchORCodeImage(uuid, filepath string) (string, error) {
 
 	qrURL := `https://login.weixin.qq.com/qrcode/` + uuid
 	params := url.Values{}
@@ -116,7 +117,7 @@ func fetchORCodeImage(uuid string) (string, error) {
 		return ``, err
 	}
 
-	path := `qrcode.png`
+	path := filepath + "/qrcode.png"
 	if err = createFile(path, data, false); err != nil {
 		return ``, err
 	}

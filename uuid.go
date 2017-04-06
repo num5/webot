@@ -9,9 +9,9 @@ type defaultUUIDProcessor struct {
 	path string
 }
 
-func (dp *defaultUUIDProcessor) ProcessUUID(uuid string) error {
+func (dp *defaultUUIDProcessor) ProcessUUID(uuid, filepath string) error {
 	// 2.``
-	path, err := fetchORCodeImage(uuid)
+	path, err := fetchORCodeImage(uuid, filepath)
 
 	if err != nil {
 		return err
