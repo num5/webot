@@ -294,6 +294,10 @@ func init() {
 
 	// 初始化
 	log = loger.NewLog(1000)
+
+	// 设置log级别
+	log.SetLevel("Debug")
+
 	// 设置输出引擎
 	log.SetEngine("file", `{"level":4, "spilt":"size", "filename":".logs/wechat.log", "maxsize":10}`)
 
@@ -301,7 +305,4 @@ func init() {
 
 	// 设置是否输出行号
 	log.SetFuncCall(true)
-
-	// 设置log级别
-	//log.SetLevel("Warning")
 }
