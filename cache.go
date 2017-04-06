@@ -300,6 +300,10 @@ func (wechat *WeChat) appendContacts(cts []map[string]interface{}) {
 		log.Debug(nc)
 	}
 
+	if !wechat.IsLogin {
+		wechat.IsLogin = true
+	}
+
 	for _, contact := range c.ggmap {
 		if contact.Type == Group {
 			for _, m := range contact.MemberList {
