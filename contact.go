@@ -82,7 +82,7 @@ func (wechat *WeChat) SyncContact() error {
 		cts = append(cts, memberList...)
 	}
 
-	var groupUserNames []string
+	//var groupUserNames []string
 
 	var tempIdxMap = make(map[string]int)
 
@@ -93,10 +93,10 @@ func (wechat *WeChat) SyncContact() error {
 
 		if vf/8 != 0 {
 			v[`Type`] = Offical
-		} else if strings.HasPrefix(un, `@@`) {
+		} /*else if strings.HasPrefix(un, `@@`) {
 			v[`Type`] = Group
 			groupUserNames = append(groupUserNames, un)
-		} else {
+		}*/ else {
 			v[`Type`] = Friend
 		}
 		tempIdxMap[un] = idx
