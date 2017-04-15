@@ -102,7 +102,7 @@ func (wechat *WeChat) SyncContact() error {
 		tempIdxMap[un] = idx
 	}
 
-	groups, _ := wechat.fetchGroups(groupUserNames)
+	/*groups, _ := wechat.fetchGroups(groupUserNames)
 
 	for _, group := range groups {
 
@@ -124,7 +124,7 @@ func (wechat *WeChat) SyncContact() error {
 		group[`Type`] = Group
 		idx := tempIdxMap[groupUserName]
 		cts[idx] = group
-	}
+	}*/
 
 	wechat.syncContacts(cts)
 
