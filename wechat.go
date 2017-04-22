@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
-	"github.com/num5/loger"
 	"io"
 	"io/ioutil"
 	"math/rand"
@@ -20,6 +19,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"github.com/num5/logger"
 )
 
 const httpOK = `200`
@@ -288,12 +288,12 @@ func (wechat *WeChat) SkeyKV() string {
 	return fmt.Sprintf(`skey=%s`, wechat.BaseRequest.Skey)
 }
 
-var log *loger.Log
+var log *logger.Log
 
 func init() {
 
 	// 初始化
-	log = loger.NewLog(1000)
+	log = logger.NewLog(1000)
 
 	// 设置log级别
 	log.SetLevel("Debug")

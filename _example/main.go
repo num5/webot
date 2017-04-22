@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Kevingong2013/wechat"
+	"wechat"
 )
 
 func main() {
