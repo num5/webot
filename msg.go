@@ -16,9 +16,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/num5/wechat/messages"
 	"gopkg.in/h2non/filetype.v1"
 	"gopkg.in/h2non/filetype.v1/types"
-	"github.com/num5/wechat/messages"
 )
 
 type uploadMediaResponse struct {

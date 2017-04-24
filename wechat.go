@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"github.com/num5/logger"
 	"io"
 	"io/ioutil"
 	"math/rand"
@@ -19,7 +20,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"github.com/num5/logger"
 )
 
 const httpOK = `200`
@@ -68,7 +68,7 @@ type BaseResponse struct {
 type Configure struct {
 	Processor UUIDProcessor
 	Debug     bool
-	Storage string
+	Storage   string
 	version   string
 }
 
@@ -77,8 +77,17 @@ func DefaultConfigure() *Configure {
 	return &Configure{
 		Processor: new(defaultUUIDProcessor),
 		Debug:     true,
-		Storage: `.webot`,
+		Storage:   `.webot`,
 		version:   `1.0.0-rc1`,
+	}
+}
+
+func NewConfigure(processor UUIDProcessor, debug bool, storpath string, version string) *Configure {
+	return &Configure{
+		Processor: processor,
+		Debug:     debug,
+		Storage:   storpath,
+		version:   version,
 	}
 }
 
@@ -213,6 +222,18 @@ func AwakenNewBot(conf *Configure) (*WeChat, error) {
 	wechat.keepAlive()
 
 	return wechat, nil
+}
+
+func (wechat *WeChat) SetProcessor(processor UUIDProcessor) {
+	wechat.conf.Processor = processor
+}
+
+func (wechat *WeChat) SetDebug(debug bool) {
+	wechat.conf.Debug = debug
+}
+
+func (wechat *WeChat) SetVersion(storpath string) {
+	wechat.conf.Storage = storpath
 }
 
 // ExcuteRequest is desined for perform http request
