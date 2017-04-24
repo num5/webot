@@ -232,7 +232,7 @@ func (wechat *WeChat) SetDebug(debug bool) {
 	wechat.conf.Debug = debug
 }
 
-func (wechat *WeChat) SetVersion(storpath string) {
+func (wechat *WeChat) SetStorage(storpath string) {
 	wechat.conf.Storage = storpath
 }
 
