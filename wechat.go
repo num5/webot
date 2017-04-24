@@ -68,7 +68,7 @@ type BaseResponse struct {
 type Configure struct {
 	Processor UUIDProcessor
 	Debug     bool
-	CachePath string
+	Storage string
 	version   string
 }
 
@@ -77,25 +77,25 @@ func DefaultConfigure() *Configure {
 	return &Configure{
 		Processor: new(defaultUUIDProcessor),
 		Debug:     true,
-		CachePath: `.webot/debug`,
+		Storage: `.webot`,
 		version:   `1.0.0-rc1`,
 	}
 }
 
 func (c *Configure) contactCachePath() string {
-	return filepath.Join(c.CachePath, `contact-cache.json`)
+	return filepath.Join(c.Storage, `contact-cache.json`)
 }
 func (c *Configure) baseInfoCachePath() string {
-	return filepath.Join(c.CachePath, `basic-info-cache.json`)
+	return filepath.Join(c.Storage, `basic-info-cache.json`)
 }
 func (c *Configure) cookieCachePath() string {
-	return filepath.Join(c.CachePath, `cookie-cache.json`)
+	return filepath.Join(c.Storage, `cookie-cache.json`)
 }
 
-func (c *Configure) httpDebugPath(url *url.URL) string {
+func (c *Configure) httpStoragePath(url *url.URL) string {
 	ps := strings.Split(url.Path, `/`)
 	lastP := strings.Split(ps[len(ps)-1], `?`)[0][5:]
-	return c.CachePath + `/` + lastP
+	return c.Storage + `/` + lastP
 }
 
 // WeChat container a default http client and base request.
@@ -118,9 +118,9 @@ type WeChat struct {
 // NewWeChat is desined for Create a new Wechat instance.
 func newWeChat(conf *Configure) (*WeChat, error) {
 
-	if _, err := os.Stat(conf.CachePath); err != nil {
+	if _, err := os.Stat(conf.Storage); err != nil {
 		if os.IsNotExist(err) {
-			err = os.MkdirAll(conf.CachePath, os.ModePerm)
+			err = os.MkdirAll(conf.Storage, os.ModePerm)
 			if err != nil {
 				return nil, err
 			}
@@ -218,7 +218,7 @@ func AwakenNewBot(conf *Configure) (*WeChat, error) {
 // ExcuteRequest is desined for perform http request
 func (wechat *WeChat) ExcuteRequest(req *http.Request, call Caller) error {
 
-	filename := wechat.conf.httpDebugPath(req.URL)
+	filename := wechat.conf.httpStoragePath(req.URL)
 
 	if wechat.conf.Debug {
 		reqData, _ := httputil.DumpRequestOut(req, false)
