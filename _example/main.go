@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"time"
 
-	"wechat"
+	"github.com/num5/webot"
 )
 
 func main() {
 
-	bot, err := wechat.AwakenNewBot(nil)
+	bot, err := webot.AwakenNewBot(nil)
 	if err != nil {
 		panic(err)
 	}

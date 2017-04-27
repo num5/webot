@@ -1,4 +1,4 @@
-package wechat
+package webot
 
 import (
 	"fmt"

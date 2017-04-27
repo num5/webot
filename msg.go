@@ -1,4 +1,4 @@
-package wechat
+package webot
 
 import (
 	"bytes"
@@ -16,7 +16,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/num5/wechat/messages"
+	"github.com/num5/webot/messages"
 	"gopkg.in/h2non/filetype.v1"
 	"gopkg.in/h2non/filetype.v1/types"
 )
