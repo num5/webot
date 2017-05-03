@@ -1,130 +1,62 @@
 package webot
 
 import (
-	"fmt"
-	"io/ioutil"
-	"net/http"
-	"net/url"
-	"os"
-	"regexp"
-	"strconv"
-	"strings"
+	"github.com/songtianyi/rrframework/config"
+	"math/rand"
+	"reflect"
 	"time"
 )
 
-// Search is a helper to remove useless char
-func search(source, prefix, suffix string) (string, error) {
-
-	index := strings.Index(source, prefix)
-	if index == -1 {
-		err := fmt.Errorf("can't find [%s] in [%s]", prefix, source)
-		return ``, err
+func GetRandomStringFromNum(length int) string {
+	bytes := []byte("0123456789")
+	result := []byte{}
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	for i := 0; i < length; i++ {
+		result = append(result, bytes[r.Intn(len(bytes))])
 	}
-	index += len(prefix)
-
-	end := strings.Index(source[index:], suffix)
-	if end == -1 {
-		err := fmt.Errorf("can't find [%s] in [%s]", suffix, source)
-		return ``, err
-	}
-
-	result := source[index : index+end]
-
-	return result, nil
+	return string(result)
 }
 
-// ReplaceEmoji replace <span class="emoji emoji[a-f0-9]{5}"></span> to 🍎
-func replaceEmoji(oriStr string) string {
-
-	newStr := oriStr
-
-	if strings.Contains(oriStr, `<span class="emoji`) {
-		reg, _ := regexp.Compile(`<span class="emoji emoji[a-f0-9]{5}"></span>`)
-		newStr = reg.ReplaceAllStringFunc(oriStr, func(arg2 string) string {
-			num := `'\U000` + arg2[len(arg2)-14:len(arg2)-9] + `'`
-			emoji, err := strconv.Unquote(num)
-			if err == nil {
-				return emoji
-			}
-			return num
-		})
+func GetSyncKeyListFromJc(jc *rrconfig.JsonConfig) (*SyncKeyList, error) {
+	is, err := jc.GetInterfaceSlice("SyncKey.List") //[]interface{}
+	if err != nil {
+		return nil, err
 	}
-
-	return newStr
-}
-
-// CreateFile save data to filesystem.
-func createFile(name string, data []byte, isAppend bool) (err error) {
-
-	defer func() {
-		if err != nil {
-			log.Error(err)
+	synks := make([]SyncKey, 0)
+	for _, v := range is {
+		// interface{}
+		vm := v.(map[string]interface{})
+		sk := SyncKey{
+			Key: int(vm["Key"].(float64)),
+			Val: int(vm["Val"].(float64)),
 		}
-	}()
+		synks = append(synks, sk)
+	}
+	return &SyncKeyList{
+		Count: len(synks),
+		List:  synks,
+	}, nil
+}
 
-	oflag := os.O_CREATE | os.O_WRONLY
-	if isAppend {
-		oflag |= os.O_APPEND
+func GetUserInfoFromJc(jc *rrconfig.JsonConfig) (*User, error) {
+	user, _ := jc.GetInterface("User")
+	u := &User{}
+	fields := reflect.ValueOf(u).Elem()
+	for k, v := range user.(map[string]interface{}) {
+		field := fields.FieldByName(k)
+		if vv, ok := v.(float64); ok {
+			field.Set(reflect.ValueOf(int(vv)))
+		} else {
+			field.Set(reflect.ValueOf(v))
+		}
+	}
+	return u, nil
+}
+
+func RealTargetUserName(session *Session, msg *ReceivedMessage) string {
+	if session.Bot.UserName == msg.FromUserName {
+		return msg.ToUserName
 	} else {
-		oflag |= os.O_TRUNC
+		return msg.FromUserName
 	}
-
-	file, err := os.OpenFile(name, oflag, 0666)
-	if err != nil {
-		return
-	}
-	defer file.Close()
-
-	_, err = file.Write(data)
-
-	return
-}
-
-// Now is current unix time string.
-func now() string {
-	return str(time.Now().Unix())
-}
-
-// Str convert int64 to string.
-func str(n int64) string {
-	return strconv.FormatInt(n, 10)
-}
-
-// FetchORCodeImage Get ORCode from wechat login server
-func fetchORCodeImage(uuid, filepath string) (string, error) {
-
-	qrURL := `https://login.weixin.qq.com/qrcode/` + uuid
-	params := url.Values{}
-	params.Set("t", "webwx")
-	params.Set("_", strconv.FormatInt(time.Now().Unix(), 10))
-
-	req, err := http.NewRequest("POST", qrURL, strings.NewReader(params.Encode()))
-	if err != nil {
-		return ``, err
-	}
-
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set("Cache-Control", "no-cache")
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return ``, err
-	}
-	defer resp.Body.Close()
-
-	data, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return ``, err
-	}
-
-	path := filepath + "/qrcode.png"
-	if err = createFile(path, data, false); err != nil {
-		return ``, err
-	}
-
-	return path, nil
-}
-
-// DeleteFile from file system
-func deleteFile(path string) {
-	os.Remove(path)
 }
