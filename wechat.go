@@ -76,7 +76,7 @@ type Configure struct {
 func DefaultConfigure() *Configure {
 	return &Configure{
 		Processor: new(defaultUUIDProcessor),
-		Debug:     true,
+		Debug:     false,
 		Storage:   `.webot`,
 		version:   `1.0.0-rc1`,
 	}

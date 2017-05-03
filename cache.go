@@ -173,8 +173,7 @@ func (wechat *WeChat) syncContacts(cts []map[string]interface{}) {
 				nc.GGID = oc.GGID
 				nc.HeadHash = contactHeadImgHash(wechat, nc)
 				if nc.HeadHash != oc.HeadHash {
-					log.Warnf(`[%s]修改了他的头像，但是也有可能是有2个人同时修改了昵称,
-					请仔细检查,如若有误,请手动更改cache文件中的mapping 关系 GGID: %s`, nc.NickName, nc.GGID)
+					log.Warnf(`[%s]修改了他的头像，但是也有可能是有2个人同时修改了昵称,请仔细检查,如若有误,请手动更改cache文件中的mapping 关系 GGID: %s`, nc.NickName, nc.GGID)
 				}
 				c.updateContact(nc)
 				delete(tempNickGG, nc.NickName)
@@ -297,7 +296,7 @@ func (wechat *WeChat) appendContacts(cts []map[string]interface{}) {
 			c.updateContact(nc)
 			log.Infof(`创建新的联系人 [%s] ...`, nc.NickName)
 		}
-		log.Debug(nc)
+		//log.Debug(nc)
 	}
 
 	for _, contact := range c.ggmap {
