@@ -82,7 +82,7 @@ func DefaultConfigure() *Configure {
 		Debug:             true,
 		FuzzyDiff:         true,
 		UniqueGroupMember: true,
-		Storage:         `.stroge`,
+		Storage:         `.storage`,
 		version:           `1.0.1-rc1`,
 	}
 }
