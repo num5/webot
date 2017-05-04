@@ -2,9 +2,7 @@
 
 forked from [KevinGong2013/wechat](https://github.com/KevinGong2013/wechat)
 
-> 因为感觉 KevinGong2013/wechat 的log比较乱，所以fork过来改成了自己写的log包
-
-
+> 修改了 KevinGong2013/wechat 的log
 
 
 # wechat
