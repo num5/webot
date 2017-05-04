@@ -239,7 +239,7 @@ func (wechat *WeChat) fetchGroupsMembers(groups []map[string]interface{}) ([]map
 		}
 	}
 
-	//log.Debug(`加载成员中，请稍后...`)
+	log.Debug(`群组成员加载中，请稍后...`)
 	return wechat.fetchMembers(list), nil
 }
 
