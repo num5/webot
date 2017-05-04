@@ -1,10 +1,3 @@
-# web微信机器人
-
-forked from [KevinGong2013/wechat](https://github.com/KevinGong2013/wechat)
-
-> 修改了 KevinGong2013/wechat 的log
-
-
 # wechat
 Awaken your wechat bot.
 

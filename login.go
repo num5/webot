@@ -17,7 +17,7 @@ import (
 
 // UUIDProcessor scan this uuid
 type UUIDProcessor interface {
-	ProcessUUID(uuid, path string) error
+	ProcessUUID(uuid string) error
 	UUIDDidConfirm(err error)
 }
 
@@ -52,7 +52,7 @@ func (wechat *WeChat) reLogin() error {
 // run is used to login to wechat server. Need end user scan orcode.
 func (wechat *WeChat) beginLoginFlow() error {
 
-	log.Info(`稍等片刻，准备登陆参数 ... ...`)
+	log.Info(`准备登陆参数，请稍等片刻 ... ...`)
 
 	cached, err := wechat.cachedInfo()
 
@@ -75,9 +75,8 @@ func (wechat *WeChat) beginLoginFlow() error {
 		}
 
 		return err
-	} else {
-		log.Errorf("恢复失败：%s ...", err.Error())
 	}
+	log.Errorf("恢复登录失败：%s ...", err.Error())
 
 	// 1.
 	uuid, e := wechat.fetchUUID()
@@ -87,7 +86,7 @@ func (wechat *WeChat) beginLoginFlow() error {
 	}
 
 	// 2.
-	err = wechat.conf.Processor.ProcessUUID(uuid, wechat.conf.Storage)
+	err = wechat.conf.Processor.ProcessUUID(uuid)
 
 	if err != nil {
 		return err
@@ -192,7 +191,7 @@ func (wechat *WeChat) fetchUUID() (string, error) {
 	}
 
 	if code != httpOK {
-		err = fmt.Errorf("错误代码:[%s], 返回结果:[%s]...", code, ds)
+		err = fmt.Errorf("error code is unexpect:[%s], api result:[%s]", code, ds)
 		return ``, err
 	}
 
@@ -253,7 +252,7 @@ func (wechat *WeChat) login(req *http.Request) error {
 
 	// full fill base request
 	if err = xml.NewDecoder(reader).Decode(wechat.BaseRequest); err != nil {
-		log.Debug(err)
+		log.Error(err.Error())
 		return err
 	}
 
@@ -322,18 +321,19 @@ func (wechat *WeChat) keepAlive() {
 			return
 		}
 
-		log.Trac(`登陆成功... ...`)
+		log.Trac(`微信登陆成功... ...`)
 
 		log.Trac(`开始同步联系人...`)
 		err = wechat.SyncContact()
 		if err != nil {
 			log.Errorf(`同步联系人失败: %v`, err)
 		}
-		log.Trac(`同步联系人成功...`)
+		log.Info(`同步联系人成功...`)
 
+        wechat.IsLogin = true
 		wechat.loginState <- 1
-
 		err = wechat.beginSync()
+        wechat.IsLogin = false
 		wechat.loginState <- -1
 
 		log.Errorf(`同步失败: %v...`, err)
@@ -379,7 +379,7 @@ func (wechat *WeChat) refreshCookieCache(cookies []*http.Cookie) {
 		log.Warnf(`刷新 cookie 失败: %v...`, err)
 	} else {
 		createFile(wechat.conf.cookieCachePath(), b, false)
-		//log.Info(`刷新 cookie 缓存...`)
+		log.Info(`刷新 cookie 缓存...`)
 	}
 }
 

@@ -6,10 +6,8 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
-	"github.com/num5/logger"
 	"io"
 	"io/ioutil"
-	"math/rand"
 	"net"
 	"net/http"
 	"net/http/cookiejar"
@@ -17,10 +15,13 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
+
+	"github.com/num5/logger"
 )
+
+var log logger.Log
 
 const httpOK = `200`
 
@@ -55,7 +56,7 @@ func (response *Response) IsSuccess() bool {
 
 // response's error msg.
 func (response *Response) Error() error {
-	return fmt.Errorf("错误信息: %s", response.BaseResponse.ErrMsg)
+	return fmt.Errorf("error message:[%s]", response.BaseResponse.ErrMsg)
 }
 
 // BaseResponse for all api resp.
@@ -66,45 +67,40 @@ type BaseResponse struct {
 
 // Configure ...
 type Configure struct {
-	Processor UUIDProcessor
-	Debug     bool
-	Storage   string
-	version   string
+	Processor         UUIDProcessor
+	Debug             bool
+	CachePath         string
+	FuzzyDiff         bool
+	UniqueGroupMember bool
+	version           string
 }
 
 // DefaultConfigure create default configuration
 func DefaultConfigure() *Configure {
 	return &Configure{
-		Processor: new(defaultUUIDProcessor),
-		Debug:     false,
-		Storage:   `.webot`,
-		version:   `1.0.0-rc1`,
-	}
-}
-
-func NewConfigure(processor UUIDProcessor, debug bool, storpath string, version string) *Configure {
-	return &Configure{
-		Processor: processor,
-		Debug:     debug,
-		Storage:   storpath,
-		version:   version,
+		Processor:         new(defaultUUIDProcessor),
+		Debug:             true,
+		FuzzyDiff:         true,
+		UniqueGroupMember: true,
+		CachePath:         `.stroge`,
+		version:           `1.0.1-rc1`,
 	}
 }
 
 func (c *Configure) contactCachePath() string {
-	return filepath.Join(c.Storage, `contact-cache.json`)
+	return filepath.Join(c.CachePath, `contact-cache.json`)
 }
 func (c *Configure) baseInfoCachePath() string {
-	return filepath.Join(c.Storage, `basic-info-cache.json`)
+	return filepath.Join(c.CachePath, `basic-info-cache.json`)
 }
 func (c *Configure) cookieCachePath() string {
-	return filepath.Join(c.Storage, `cookie-cache.json`)
+	return filepath.Join(c.CachePath, `cookie-cache.json`)
 }
 
-func (c *Configure) httpStoragePath(url *url.URL) string {
+func (c *Configure) httpDebugPath(url *url.URL) string {
 	ps := strings.Split(url.Path, `/`)
 	lastP := strings.Split(ps[len(ps)-1], `?`)[0][5:]
-	return c.Storage + `/` + lastP
+	return c.CachePath + `/` + lastP
 }
 
 // WeChat container a default http client and base request.
@@ -127,9 +123,9 @@ type WeChat struct {
 // NewWeChat is desined for Create a new Wechat instance.
 func newWeChat(conf *Configure) (*WeChat, error) {
 
-	if _, err := os.Stat(conf.Storage); err != nil {
+	if _, err := os.Stat(conf.CachePath); err != nil {
 		if os.IsNotExist(err) {
-			err = os.MkdirAll(conf.Storage, os.ModePerm)
+			err = os.MkdirAll(conf.CachePath, os.ModePerm)
 			if err != nil {
 				return nil, err
 			}
@@ -143,13 +139,9 @@ func newWeChat(conf *Configure) (*WeChat, error) {
 		return nil, err
 	}
 
-	rand.Seed(time.Now().Unix())
-	str := strconv.Itoa(rand.Int())
-	device_id := "e" + str[2:17]
-
 	baseReq := new(BaseRequest)
 	baseReq.Ret = 1
-	baseReq.DeviceID = device_id
+	baseReq.DeviceID = `e999471493880231`
 
 	wechat := &WeChat{
 		Client:      client,
@@ -221,25 +213,17 @@ func AwakenNewBot(conf *Configure) (*WeChat, error) {
 
 	wechat.keepAlive()
 
+	if conf.Debug {
+		log.SetLevel("DEBUG")
+	}
+
 	return wechat, nil
-}
-
-func (wechat *WeChat) SetProcessor(processor UUIDProcessor) {
-	wechat.conf.Processor = processor
-}
-
-func (wechat *WeChat) SetDebug(debug bool) {
-	wechat.conf.Debug = debug
-}
-
-func (wechat *WeChat) SetStorage(storpath string) {
-	wechat.conf.Storage = storpath
 }
 
 // ExcuteRequest is desined for perform http request
 func (wechat *WeChat) ExcuteRequest(req *http.Request, call Caller) error {
 
-	filename := wechat.conf.httpStoragePath(req.URL)
+	filename := wechat.conf.httpDebugPath(req.URL)
 
 	if wechat.conf.Debug {
 		reqData, _ := httputil.DumpRequestOut(req, false)
@@ -309,8 +293,6 @@ func (wechat *WeChat) SkeyKV() string {
 	return fmt.Sprintf(`skey=%s`, wechat.BaseRequest.Skey)
 }
 
-var log *logger.Log
-
 func init() {
 
 	// 初始化
@@ -320,7 +302,7 @@ func init() {
 	log.SetLevel("Debug")
 
 	// 设置输出引擎
-	log.SetEngine("file", `{"level":4, "spilt":"size", "filename":".logs/wechat.log", "maxsize":10}`)
+	log.SetEngine("file", `{"level":4, "spilt":"size", "filename":".storage/logs/wechat.log", "maxsize":10}`)
 
 	//log.DelEngine("console")
 

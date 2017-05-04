@@ -142,7 +142,7 @@ func (es *evtStream) match(path string) string {
 func (wechat *WeChat) Go() {
 	es := wechat.evtStream
 
-	log.Debug(`------------开启微信程序，准备中...------------`)
+	log.Debug(`------------开启微信程序，皮皮虾我们走...------------`)
 	for k := range es.Handlers {
 		log.Debugf(k)
 	}
@@ -244,7 +244,7 @@ func newTimingCh(hm string) chan Event {
 			if n > 0 || hour > nh || (hour == nh && minute < nm) {
 				next = next.Add(time.Hour * 24)
 			}
-			log.Debugf(`下一次启动时间 %v ... `, next)
+			log.Tracf(`下一次启动时间 %v ... `, next)
 			n++
 			time.Sleep(next.Sub(now))
 			e := Event{}
@@ -306,7 +306,7 @@ func (wechat *WeChat) emitNewMessageEvent(m map[string]interface{}) {
 	mid := m[`MsgId`].(string)
 
 	isMediaMsg := false
-	mediaURL := `./media/`
+	mediaURL := ``
 	path := ``
 
 	switch msgType {

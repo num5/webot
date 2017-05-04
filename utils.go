@@ -58,7 +58,7 @@ func createFile(name string, data []byte, isAppend bool) (err error) {
 
 	defer func() {
 		if err != nil {
-			log.Error(err)
+			log.Error(err.Error())
 		}
 	}()
 

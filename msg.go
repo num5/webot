@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/num5/webot/messages"
+
 	"gopkg.in/h2non/filetype.v1"
 	"gopkg.in/h2non/filetype.v1/types"
 )
@@ -69,7 +70,7 @@ func (wechat *WeChat) SendMsg(message Msg) error {
 		return err
 	}
 
-	//log.Debugf(`发送消息: [%s]...`, msg[`LocalID`])
+	log.Debugf(`发送消息: [%s]...`, msg[`LocalID`])
 
 	resp := new(sendMsgResponse)
 
@@ -83,8 +84,8 @@ func (wechat *WeChat) SendMsg(message Msg) error {
 
 	err = wechat.Excute(apiURL, buffer, resp)
 
-	if err != nil {
-		log.Debugf(`发送消息失败 %s ...`, err)
+	if err == nil {
+		log.Debugf(`消息已发送 [%s] MsgID=[%s]`, resp.LocalID, resp.MsgID)
 	}
 
 	return err
@@ -206,8 +207,6 @@ func (wechat *WeChat) UploadMedia(buf []byte, kind types.Type, info os.FileInfo,
 // DownloadMedia use to download a voice or immage msg
 func (wechat *WeChat) DownloadMedia(url string, localPath string) (string, error) {
 
-	fp := wechat.conf.Storage + "/media/"
-
 	req, err := http.NewRequest(`GET`, url, nil)
 	if err != nil {
 		return ``, err
@@ -231,7 +230,7 @@ func (wechat *WeChat) DownloadMedia(url string, localPath string) (string, error
 		return ``, err
 	}
 
-	path := filepath.Join(fp + localPath + `.` + t.Extension)
+	path := filepath.Join(localPath + `.` + t.Extension)
 	err = createFile(path, data, false)
 	if err != nil {
 		return ``, err

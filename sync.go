@@ -55,7 +55,7 @@ func (wechat *WeChat) beginSync() error {
 		return fmt.Errorf(`无法同步可用主机，请重新登录...`)
 	}
 
-	log.Tracf(`发现主机: [%s], 开始同步 ... ...`, wechat.syncHost)
+	log.Infof(`发现主机: [%s], 开始同步 ... ...`, wechat.syncHost)
 
 	for {
 		log.Info(`消息同步中 ....`)
@@ -71,14 +71,14 @@ func (wechat *WeChat) beginSync() error {
 		}
 
 		if selector == `0` {
-			log.Debug(`服务器无响应...`)
+			log.Debug(`服务器无返回消息...`)
 		} else {
 			continueFlag := -1
 			for continueFlag != 0 {
 				resp, err := wechat.sync()
 				if err != nil {
 					log.Error("同步消息失败：%s...", err)
-					return errors.New(`同步消息失败...`)
+					return errors.New(`同步消息失败`)
 				}
 				continueFlag = resp.ContinueFlag
 
@@ -92,10 +92,12 @@ func (wechat *WeChat) beginSync() error {
 					wechat.groupMemberDidChange(resp.ModChatRoomMemberList)
 				}
 				log.Debugf(`服务器同步简介:
-	新增消息数目 		: %d
-	变更联系人数目  	: %d
-	群组联系人数目		: %d `,
-					resp.AddMsgCount, resp.ModContactCount, resp.ModChatRoomMemberCount)
+新增消息数目	   : %d
+变更联系人数目    : %d
+删除联系人数目    : %d
+群组联系人数目    : %d `,
+					resp.AddMsgCount, resp.ModContactCount,
+					resp.DelContactCount, resp.ModChatRoomMemberCount)
 				go wechat.handleServerEvent(resp)
 			}
 		}

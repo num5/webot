@@ -11,12 +11,12 @@ type defaultUUIDProcessor struct {
 
 func (dp *defaultUUIDProcessor) ProcessUUID(uuid, filepath string) error {
 	// 2.``
-	path, err := fetchORCodeImage(uuid, filepath)
+	path, err := fetchORCodeImage(uuid,filepath)
 
 	if err != nil {
 		return err
 	}
-	//log.Debugf(`二维码保存地址: %s`, path)
+	//log.Debugf(`qrcode image path: %s`, path)
 
 	// 3.
 	go func() {
