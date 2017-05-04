@@ -82,7 +82,7 @@ func (wechat *WeChat) SyncContact() error {
 		cts = append(cts, memberList...)
 	}
 
-	//var groupUserNames []string
+	var groupUserNames []string
 
 	var tempIdxMap = make(map[string]int)
 
@@ -93,17 +93,16 @@ func (wechat *WeChat) SyncContact() error {
 
 		if vf/8 != 0 {
 			v[`Type`] = Offical
+		} else if strings.HasPrefix(un, `@@`) {
+			v[`Type`] = Group
+			groupUserNames = append(groupUserNames, un)
 		} else {
 			v[`Type`] = Friend
 		}
 		tempIdxMap[un] = idx
-		/*else if strings.HasPrefix(un, `@@`) {
-			v[`Type`] = Group
-			groupUserNames = append(groupUserNames, un)
-		}*/
 	}
 
-	/*groups, _ := wechat.fetchGroups(groupUserNames)
+	groups, _ := wechat.fetchGroups(groupUserNames)
 
 	for _, group := range groups {
 
@@ -125,7 +124,7 @@ func (wechat *WeChat) SyncContact() error {
 		group[`Type`] = Group
 		idx := tempIdxMap[groupUserName]
 		cts[idx] = group
-	}*/
+	}
 
 	wechat.syncContacts(cts)
 
