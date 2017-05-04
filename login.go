@@ -86,7 +86,7 @@ func (wechat *WeChat) beginLoginFlow() error {
 	}
 
 	// 2.
-	err = wechat.conf.Processor.ProcessUUID(uuid)
+	err = wechat.conf.Processor.ProcessUUID(uuid,wechat.conf.Storage)
 
 	if err != nil {
 		return err

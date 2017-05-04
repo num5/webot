@@ -69,7 +69,7 @@ type BaseResponse struct {
 type Configure struct {
 	Processor         UUIDProcessor
 	Debug             bool
-	CachePath         string
+	Storage         string
 	FuzzyDiff         bool
 	UniqueGroupMember bool
 	version           string
@@ -82,25 +82,25 @@ func DefaultConfigure() *Configure {
 		Debug:             true,
 		FuzzyDiff:         true,
 		UniqueGroupMember: true,
-		CachePath:         `.stroge`,
+		Storage:         `.stroge`,
 		version:           `1.0.1-rc1`,
 	}
 }
 
 func (c *Configure) contactCachePath() string {
-	return filepath.Join(c.CachePath, `contact-cache.json`)
+	return filepath.Join(c.Storage, `contact-cache.json`)
 }
 func (c *Configure) baseInfoCachePath() string {
-	return filepath.Join(c.CachePath, `basic-info-cache.json`)
+	return filepath.Join(c.Storage, `basic-info-cache.json`)
 }
 func (c *Configure) cookieCachePath() string {
-	return filepath.Join(c.CachePath, `cookie-cache.json`)
+	return filepath.Join(c.Storage, `cookie-cache.json`)
 }
 
 func (c *Configure) httpDebugPath(url *url.URL) string {
 	ps := strings.Split(url.Path, `/`)
 	lastP := strings.Split(ps[len(ps)-1], `?`)[0][5:]
-	return c.CachePath + `/` + lastP
+	return c.Storage + `/` + lastP
 }
 
 // WeChat container a default http client and base request.
@@ -123,9 +123,9 @@ type WeChat struct {
 // NewWeChat is desined for Create a new Wechat instance.
 func newWeChat(conf *Configure) (*WeChat, error) {
 
-	if _, err := os.Stat(conf.CachePath); err != nil {
+	if _, err := os.Stat(conf.Storage); err != nil {
 		if os.IsNotExist(err) {
-			err = os.MkdirAll(conf.CachePath, os.ModePerm)
+			err = os.MkdirAll(conf.Storage, os.ModePerm)
 			if err != nil {
 				return nil, err
 			}
