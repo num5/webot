@@ -21,7 +21,7 @@ import (
 	"github.com/num5/logger"
 )
 
-var log logger.Log
+var log *logger.Log
 
 const httpOK = `200`
 
