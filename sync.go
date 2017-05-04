@@ -129,7 +129,7 @@ func (wechat *WeChat) syncCheck() (string, string, error) {
 
 	ds := string(data)
 
-	log.Debug(ds)
+	//log.Debug(ds)
 
 	// TOOD need handle this error
 	code, _ := search(ds, `window.synccheck={retcode:"`, `"`)
