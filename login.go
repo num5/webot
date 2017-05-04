@@ -17,7 +17,7 @@ import (
 
 // UUIDProcessor scan this uuid
 type UUIDProcessor interface {
-	ProcessUUID(uuid string) error
+	ProcessUUID(uuid,filepath string) error
 	UUIDDidConfirm(err error)
 }
 
