@@ -85,7 +85,7 @@ func (wechat *WeChat) SendMsg(message Msg) error {
 	err = wechat.Excute(apiURL, buffer, resp)
 
 	if err == nil {
-		log.Debugf(`消息已发送 [%s] MsgID=[%s]`, resp.LocalID, resp.MsgID)
+		log.Debugf(`消息已发送 [%v]`, message.Content())
 	}
 
 	return err
