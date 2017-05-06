@@ -92,7 +92,7 @@ func (wechat *WeChat) beginSync() error {
 					wechat.groupMemberDidChange(resp.ModChatRoomMemberList)
 				}
 				log.Debugf(`服务器同步简介:
-新增消息数目	   : %d
+新增消息数目	  : %d
 变更联系人数目    : %d
 删除联系人数目    : %d
 群组联系人数目    : %d `,
