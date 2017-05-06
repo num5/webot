@@ -27,20 +27,20 @@ type EventContactData struct {
 
 // EventMsgData 新消息
 type EventMsgData struct {
-	IsGroupMsg       bool
-	IsMediaMsg       bool
-	IsSendedByMySelf bool
-	MsgType          int64
-	AtMe             bool
-	MediaURL         string
-	Content          string
-	FromUserName     string
-	FromGGID         string
-	SenderUserName   string
-	SenderGGID       string
-	ToUserName       string
-	ToGGID           string
-	OriginalMsg      map[string]interface{}
+	IsGroupMsg       bool    `json:"is_group_msg"`
+	IsMediaMsg       bool    `json:"is_media_msg"`
+	IsSendedByMySelf bool    `json:"is_sended_by_my_self"`
+	MsgType          int64 `json:"msg_type"`
+	AtMe             bool `json:"at_me"`
+	MediaURL         string `json:"media_url"`
+	Content          string `json:"content"`
+	FromUserName     string `json:"from_user_name"`
+	FromGGID         string `json:"from_ggid"`
+	SenderUserName   string `json:"sender_user_name"`
+	SenderGGID       string `json:"sender_ggid"`
+	ToUserName       string `json:"to_user_name"`
+	ToGGID           string `json:"to_ggid"`
+	OriginalMsg      map[string]interface{} `json:"original_msg"`
 }
 
 // EventTimerData ...
