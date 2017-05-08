@@ -27,6 +27,7 @@ type EventContactData struct {
 
 // EventMsgData 新消息
 type EventMsgData struct {
+	MsgID	string `json:"msg_id"`
 	IsGroupMsg       bool    `json:"is_group_msg"`
 	IsMediaMsg       bool    `json:"is_media_msg"`
 	IsSendedByMySelf bool    `json:"is_sended_by_my_self"`
@@ -353,6 +354,7 @@ func (wechat *WeChat) emitNewMessageEvent(m map[string]interface{}) {
 	}
 
 	data := EventMsgData{
+		MsgID: m[`MsgId`].(string),
 		IsGroupMsg:       isGroupMsg,
 		IsMediaMsg:       isMediaMsg,
 		IsSendedByMySelf: isSendedByMySelf,
