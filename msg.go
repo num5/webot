@@ -70,7 +70,7 @@ func (wechat *WeChat) SendMsg(message Msg) error {
 		return err
 	}
 
-	log.Debugf(`发送消息: [%s]...`, msg[`LocalID`])
+	//log.Debugf(`发送消息: [%s]...`, msg[`LocalID`])
 
 	resp := new(sendMsgResponse)
 
