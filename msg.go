@@ -230,7 +230,7 @@ func (wechat *WeChat) DownloadMedia(url string, localPath string) (string, error
 		return ``, err
 	}
 
-	path := filepath.Join(localPath + `.` + t.Extension)
+	path := filepath.Join(wechat.conf.Storage,localPath + `.` + t.Extension)
 	err = createFile(path, data, false)
 	if err != nil {
 		return ``, err
